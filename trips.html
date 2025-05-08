@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}My Trips - AI Trip Planner{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-suitcase me-2"></i>My Trips</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('trip.new_trip') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create New Trip
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <ul class="nav nav-tabs" id="tripTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                    <i class="fas fa-calendar-alt me-1"></i>Upcoming
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab">
+                    <i class="fas fa-history me-1"></i>Past
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#favorites" type="button" role="tab">
+                    <i class="fas fa-star me-1"></i>Favorites
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                    <i class="fas fa-list me-1"></i>All
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content mt-3" id="tripTabContent">
+            <!-- Upcoming Trips -->
+            <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+                {% if upcoming_trips %}
+                <div class="row">
+                    {% for trip in upcoming_trips %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card trip-card h-100">
+                            <img src="https://source.unsplash.com/500x300/?{{ trip.destination|urlencode }}" class="card-img-top" alt="{{ trip.destination }}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ trip.destination }}
+                                    {% if trip.is_favorite %}
+                                    <i class="fas fa-star text-warning ms-1"></i>
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d, %Y') }}
+                                    <br>
+                                    <i class="fas fa-money-bill-wave me-1"></i>${{ trip.budget }}
+                                </p>
+                                <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}" class="btn btn-primary">View Trip</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-plane-slash fa-3x text-muted mb-3"></i>
+                    <h4>No upcoming trips</h4>
+                    <p class="text-muted">Start planning your next adventure!</p>
+                    <a href="{{ url_for('trip.new_trip') }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-2"></i>Create New Trip
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Past Trips -->
+            <div class="tab-pane fade" id="past" role="tabpanel">
+                {% if past_trips %}
+                <div class="row">
+                    {% for trip in past_trips %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card trip-card h-100">
+                            <img src="https://source.unsplash.com/500x300/?{{ trip.destination|urlencode }}" class="card-img-top" alt="{{ trip.destination }}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ trip.destination }}
+                                    {% if trip.is_favorite %}
+                                    <i class="fas fa-star text-warning ms-1"></i>
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d, %Y') }}
+                                    <br>
+                                    <i class="fas fa-money-bill-wave me-1"></i>${{ trip.budget }}
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}" class="btn btn-primary">View Trip</a>
+                                    {% if not trip.has_review %}
+                                    <a href="{{ url_for('review.add_review', trip_id=trip.id) }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-star me-1"></i>Review
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h4>No past trips</h4>
+                    <p class="text-muted">Your completed trips will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Favorite Trips -->
+            <div class="tab-pane fade" id="favorites" role="tabpanel">
+                {% if favorite_trips %}
+                <div class="row">
+                    {% for trip in favorite_trips %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card trip-card h-100">
+                            <img src="https://source.unsplash.com/500x300/?{{ trip.destination|urlencode }}" class="card-img-top" alt="{{ trip.destination }}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ trip.destination }}
+                                    <i class="fas fa-star text-warning ms-1"></i>
+                                </h5>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d, %Y') }}
+                                    <br>
+                                    <i class="fas fa-money-bill-wave me-1"></i>${{ trip.budget }}
+                                </p>
+                                <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}" class="btn btn-primary">View Trip</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="far fa-star fa-3x text-muted mb-3"></i>
+                    <h4>No favorite trips</h4>
+                    <p class="text-muted">Mark trips as favorites to see them here.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- All Trips -->
+            <div class="tab-pane fade" id="all" role="tabpanel">
+                {% if all_trips %}
+                <div class="row">
+                    {% for trip in all_trips %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card trip-card h-100">
+                            <img src="https://source.unsplash.com/500x300/?{{ trip.destination|urlencode }}" class="card-img-top" alt="{{ trip.destination }}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ trip.destination }}
+                                    {% if trip.is_favorite %}
+                                    <i class="fas fa-star text-warning ms-1"></i>
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d, %Y') }}
+                                    <br>
+                                    <i class="fas fa-money-bill-wave me-1"></i>${{ trip.budget }}
+                                </p>
+                                <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}" class="btn btn-primary">View Trip</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-suitcase fa-3x text-muted mb-3"></i>
+                    <h4>No trips found</h4>
+                    <p class="text-muted">Start planning your adventures!</p>
+                    <a href="{{ url_for('trip.new_trip') }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-2"></i>Create New Trip
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

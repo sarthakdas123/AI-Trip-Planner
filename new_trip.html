@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Trip - AI Trip Planner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4"><i class="fas fa-plus-circle me-2"></i>Create New Trip</h1>
+        <div class="card">
+            <div class="card-body">
+                <form action="{{ url_for('trip.new_trip') }}" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="destination" class="form-label">Destination</label>
+                            <input type="text" class="form-control" id="destination" name="destination" required placeholder="e.g., Paris, France">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="budget" class="form-label">Budget (USD)</label>
+                            <input type="number" class="form-control" id="budget" name="budget" required min="100" placeholder="e.g., 2000">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="preferences" class="form-label">Travel Preferences</label>
+                        <textarea class="form-control" id="preferences" name="preferences" rows="4" placeholder="Tell us about your travel preferences, interests, and any specific requirements (e.g., family-friendly activities, adventure sports, cultural experiences, food preferences, accessibility needs)"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Trip Type</h5>
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_sightseeing" name="trip_type[]" value="sightseeing">
+                                    <label class="form-check-label" for="type_sightseeing">Sightseeing</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_beach" name="trip_type[]" value="beach">
+                                    <label class="form-check-label" for="type_beach">Beach</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_adventure" name="trip_type[]" value="adventure">
+                                    <label class="form-check-label" for="type_adventure">Adventure</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_cultural" name="trip_type[]" value="cultural">
+                                    <label class="form-check-label" for="type_cultural">Cultural</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_food" name="trip_type[]" value="food">
+                                    <label class="form-check-label" for="type_food">Food & Dining</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_relaxation" name="trip_type[]" value="relaxation">
+                                    <label class="form-check-label" for="type_relaxation">Relaxation</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_family" name="trip_type[]" value="family">
+                                    <label class="form-check-label" for="type_family">Family</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="type_romantic" name="trip_type[]" value="romantic">
+                                    <label class="form-check-label" for="type_romantic">Romantic</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('trip.trips') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-magic me-2"></i>Generate Itinerary
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5><i class="fas fa-lightbulb me-2 text-warning"></i>Tips for Better Itineraries</h5>
+                <ul class="mb-0">
+                    <li>Be specific about your interests (e.g., "I love modern art museums" rather than just "museums")</li>
+                    <li>Mention any dietary restrictions or food preferences</li>
+                    <li>Include your preferred pace of travel (e.g., relaxed with free time vs. packed schedule)</li>
+                    <li>Note any mobility issues or accessibility requirements</li>
+                    <li>Specify if you prefer public transportation or are planning to rent a car</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set minimum date for start_date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').setAttribute('min', today);
+    
+    // Update end_date min attribute when start_date changes
+    document.getElementById('start_date').addEventListener('change', function() {
+        document.getElementById('end_date').setAttribute('min', this.value);
+        
+        // If end_date is before start_date, update it
+        if (document.getElementById('end_date').value < this.value) {
+            document.getElementById('end_date').value = this.value;
+        }
+    });
+    
+    // Set default dates (today and tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    document.getElementById('start_date').value = today;
+    document.getElementById('end_date').value = tomorrowStr;
+    document.getElementById('end_date').setAttribute('min', today);
+</script>
+{% endblock %}

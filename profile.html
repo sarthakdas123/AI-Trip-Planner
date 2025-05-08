@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - AI Trip Planner{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-user-circle me-2"></i>My Profile</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Account Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <p class="text-muted">Member since {{ user.created_at.strftime('%b %d, %Y') }}</p>
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit me-1"></i>Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Account Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-suitcase fa-2x text-primary mb-2"></i>
+                            <h3>{{ stats.total_trips }}</h3>
+                            <p class="text-muted mb-0">Total Trips</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-ticket-alt fa-2x text-success mb-2"></i>
+                            <h3>{{ stats.total_bookings }}</h3>
+                            <p class="text-muted mb-0">Bookings</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                            <h3>{{ stats.total_reviews }}</h3>
+                            <p class="text-muted mb-0">Reviews</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Recent Activity</h5>
+                        <ul class="list-group">
+                            {% for activity in recent_activity %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {% if activity.type == 'trip' %}
+                                <span><i class="fas fa-suitcase text-primary me-2"></i>Created trip to {{ activity.destination }}</span>
+                                {% elif activity.type == 'booking' %}
+                                <span><i class="fas fa-ticket-alt text-success me-2"></i>Added {{ activity.booking_type }} booking</span>
+                                {% elif activity.type == 'review' %}
+                                <span><i class="fas fa-star text-warning me-2"></i>Reviewed {{ activity.destination }}</span>
+                                {% endif %}
+                                <small class="text-muted">{{ activity.date.strftime('%b %d') }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Upcoming Trips</h5>
+                        {% if upcoming_trips %}
+                        <ul class="list-group">
+                            {% for trip in upcoming_trips %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-plane-departure text-primary me-2"></i>{{ trip.destination }}</span>
+                                <span class="badge bg-primary rounded-pill">{{ trip.start_date.strftime('%b %d') }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted">No upcoming trips</p>
+                        <a href="{{ url_for('trip.new_trip') }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Plan a Trip
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">API Keys</h5>
+                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#newApiKeyModal">
+                    <i class="fas fa-plus me-1"></i>New Key
+                </button>
+            </div>
+            <div class="card-body">
+                {% if api_keys %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>API Key</th>
+                                <th>Created</th>
+                                <th>Last Used</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key in api_keys %}
+                            <tr>
+                                <td>{{ key.description }}</td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="password" class="form-control api-key-field" value="{{ key.api_key }}" readonly>
+                                        <button class="btn btn-outline-secondary toggle-key-btn" type="button">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary copy-key-btn" type="button" data-key="{{ key.api_key }}">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>{{ key.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>{{ key.last_used.strftime('%b %d, %Y') if key.last_used else 'Never' }}</td>
+                                <td>
+                                    {% if key.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary toggle-status-btn" data-key-id="{{ key.id }}" data-status="{{ key.is_active }}">
+                                            {% if key.is_active %}
+                                            <i class="fas fa-ban"></i>
+                                            {% else %}
+                                            <i class="fas fa-check"></i>
+                                            {% endif %}
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger delete-key-btn" data-key-id="{{ key.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-key fa-3x text-muted mb-3"></i>
+                    <h5>No API Keys</h5>
+                    <p class="text-muted">Create an API key to access the Trip Planner API</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newApiKeyModal">
+                        <i class="fas fa-plus me-1"></i>Create API Key
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('auth.update_profile') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <hr>
+                    <h6>Change Password (optional)</h6>
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- New API Key Modal -->
+<div class="modal fade" id="newApiKeyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New API Key</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('auth.create_api_key') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="key_description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="key_description" name="description" required placeholder="e.g., Mobile App, Website Integration">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Your API key will only be shown once after creation. Make sure to copy it somewhere safe.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create API Key</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle API key visibility
+        const toggleKeyBtns = document.querySelectorAll('.toggle-key-btn');
+        toggleKeyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const icon = this.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+        
+        // Copy API key to clipboard
+        const copyKeyBtns = document.querySelectorAll('.copy-key-btn');
+        copyKeyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const key = this.getAttribute('data-key');
+                
+                navigator.clipboard.writeText(key).then(() => {
+                    // Show success message
+                    const originalHTML = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                    }, 2000);
+                });
+            });
+        });
+        
+        // Toggle API key status
+        const toggleStatusBtns = document.querySelectorAll('.toggle-status-btn');
+        toggleStatusBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const keyId = this.getAttribute('data-key-id');
+                const currentStatus = this.getAttribute('data-status') === 'True';
+                
+                fetch(`/api-keys/${keyId}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update button and status
+                        this.setAttribute('data-status', data.is_active);
+                        
+                        const icon = this.querySelector('i');
+                        if (data.is_active) {
+                            icon.classList.remove('fa-check');
+                            icon.classList.add('fa-ban');
+                            this.closest('tr').querySelector('.badge').className = 'badge bg-success';
+                            this.closest('tr').querySelector('.badge').textContent = 'Active';
+                        } else {
+                            icon.classList.remove('fa-ban');
+                            icon.classList.add('fa-check');
+                            this.closest('tr').querySelector('.badge').className = 'badge bg-danger';
+                            this.closest('tr').querySelector('.badge').textContent = 'Inactive';
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Delete API key
+        const deleteKeyBtns = document.querySelectorAll('.delete-key-btn');
+        deleteKeyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+                    const keyId = this.getAttribute('data-key-id');
+                    
+                    fetch(`/api-keys/${keyId}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove row from table
+                            this.closest('tr').remove();
+                            
+                            // If no more keys, show empty state
+                            if (document.querySelectorAll('table tbody tr').length === 0) {
+                                location.reload();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

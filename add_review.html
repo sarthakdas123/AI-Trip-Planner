@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Review - {{ trip.destination }}{% endblock %}
+
+{% block styles %}
+<style>
+    .rating-container {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    
+    .rating-container input {
+        display: none;
+    }
+    
+    .rating-container label {
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: #ddd;
+        padding: 0 0.1em;
+    }
+    
+    .rating-container label:hover,
+    .rating-container label:hover ~ label,
+    .rating-container input:checked ~ label {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-star me-2"></i>Add Review</h1>
+        <p class="lead">Trip: <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}">{{ trip.destination }}</a></p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <form action="{{ url_for('review.add_review', trip_id=trip.id) }}" method="POST">
+                    <div class="mb-4">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-container">
+                            <input type="radio" id="star5" name="rating" value="5" class="rating-input">
+                            <label for="star5" class="rating-star"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star4" name="rating" value="4" class="rating-input">
+                            <label for="star4" class="rating-star"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star3" name="rating" value="3" class="rating-input">
+                            <label for="star3" class="rating-star"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star2" name="rating" value="2" class="rating-input">
+                            <label for="star2" class="rating-star"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star1" name="rating" value="1" class="rating-input">
+                            <label for="star1" class="rating-star"><i class="fas fa-star"></i></label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Review Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required placeholder="Summarize your experience">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Review Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="6" required placeholder="Share your experience, what you liked, what could be improved, tips for other travelers, etc."></textarea>
+                    </div>
+                    
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_public" name="is_public" checked>
+                        <label class="form-check-label" for="is_public">Make this review public</label>
+                        <div class="form-text">Public reviews are visible to all users. Private reviews are only visible to you.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Submit Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default rating to 5 stars
+    document.getElementById('star5').checked = true;
+</script>
+{% endblock %}

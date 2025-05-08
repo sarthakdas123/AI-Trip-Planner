@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Booking - {{ trip.destination }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-plus-circle me-2"></i>Add Booking</h1>
+        <p class="lead">Trip: <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}">{{ trip.destination }}</a></p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-tabs mb-4" id="bookingTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
+                    <i class="fas fa-edit me-1"></i>Manual Entry
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="search-flights-tab" data-bs-toggle="tab" data-bs-target="#search-flights" type="button" role="tab">
+                    <i class="fas fa-plane me-1"></i>Search Flights
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="search-hotels-tab" data-bs-toggle="tab" data-bs-target="#search-hotels" type="button" role="tab">
+                    <i class="fas fa-hotel me-1"></i>Search Hotels
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="bookingTabContent">
+            <!-- Manual Entry -->
+            <div class="tab-pane fade show active" id="manual" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="{{ url_for('booking.new_booking', trip_id=trip.id) }}" method="POST">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="booking_type" class="form-label">Booking Type</label>
+                                    <select class="form-select" id="booking_type" name="booking_type" required>
+                                        <option value="" selected disabled>Select booking type</option>
+                                        <option value="Flight">Flight</option>
+                                        <option value="Hotel">Hotel</option>
+                                        <option value="Car">Car Rental</option>
+                                        <option value="Activity">Activity</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="provider" class="form-label">Provider</label>
+                                    <input type="text" class="form-control" id="provider" name="provider" required placeholder="e.g., Airline name, Hotel name">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="booking_details" class="form-label">Booking Details</label>
+                                <textarea class="form-control" id="booking_details" name="booking_details" rows="4" required placeholder="Enter details such as flight number, confirmation number, room type, etc."></textarea>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="booking_date" class="form-label">Booking Date</label>
+                                    <input type="date" class="form-control" id="booking_date" name="booking_date" required min="{{ trip.start_date.strftime('%Y-%m-%d') }}" max="{{ trip.end_date.strftime('%Y-%m-%d') }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="price" class="form-label">Price (USD)</label>
+                                    <input type="number" class="form-control" id="price" name="price" required min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('trip.view_trip', trip_id=trip.id) }}" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Booking
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Flights -->
+            <div class="tab-pane fade" id="search-flights" role="tabpanel">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Search for Flights</h5>
+                        <form id="flightSearchForm">
+                            <input type="hidden" id="tripId" value="{{ trip.id }}">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="flightOrigin" class="form-label">Origin (Airport Code)</label>
+                                    <input type="text" class="form-control" id="flightOrigin" required placeholder="e.g., LAX">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="flightDestination" class="form-label">Destination (Airport Code)</label>
+                                    <input type="text" class="form-control" id="flightDestination" required placeholder="e.g., JFK">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="flightDepartureDate" class="form-label">Departure Date</label>
+                                    <input type="date" class="form-control" id="flightDepartureDate" required min="{{ trip.start_date.strftime('%Y-%m-%d') }}" max="{{ trip.end_date.strftime('%Y-%m-%d') }}" value="{{ trip.start_date.strftime('%Y-%m-%d') }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="flightReturnDate" class="form-label">Return Date (Optional)</label>
+                                    <input type="date" class="form-control" id="flightReturnDate" min="{{ trip.start_date.strftime('%Y-%m-%d') }}" max="{{ trip.end_date.strftime('%Y-%m-%d') }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="flightAdults" class="form-label">Passengers</label>
+                                    <select class="form-select" id="flightAdults">
+                                        <option value="1">1 Adult</option>
+                                        <option value="2">2 Adults</option>
+                                        <option value="3">3 Adults</option>
+                                        <option value="4">4 Adults</option>
+                                        <option value="5">5 Adults</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Search Flights
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="flightResults"></div>
+            </div>
+            
+            <!-- Search Hotels -->
+            <div class="tab-pane fade" id="search-hotels" role="tabpanel">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Search for Hotels</h5>
+                        <form id="hotelSearchForm">
+                            <input type="hidden" id="tripId" value="{{ trip.id }}">
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="hotelDestination" class="form-label">Destination</label>
+                                    <input type="text" class="form-control" id="hotelDestination" required value="{{ trip.destination }}">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="hotelCheckIn" class="form-label">Check-in Date</label>
+                                    <input type="date" class="form-control" id="hotelCheckIn" required min="{{ trip.start_date.strftime('%Y-%m-%d') }}" max="{{ trip.end_date.strftime('%Y-%m-%d') }}" value="{{ trip.start_date.strftime('%Y-%m-%d') }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="hotelCheckOut" class="form-label">Check-out Date</label>
+                                    <input type="date" class="form-control" id="hotelCheckOut" required min="{{ trip.start_date.strftime('%Y-%m-%d') }}" max="{{ trip.end_date.strftime('%Y-%m-%d') }}" value="{{ trip.end_date.strftime('%Y-%m-%d') }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="hotelGuests" class="form-label">Guests</label>
+                                    <select class="form-select" id="hotelGuests">
+                                        <option value="1">1 Guest</option>
+                                        <option value="2" selected>2 Guests</option>
+                                        <option value="3">3 Guests</option>
+                                        <option value="4">4 Guests</option>
+                                        <option value="5">5 Guests</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Search Hotels
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="hotelResults"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmBookingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmBookingTitle">Confirm Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmBookingBody">
+                <!-- Content will be dynamically added -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBookingButton">Confirm Booking</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default date for booking_date
+    document.getElementById('booking_date').value = '{{ trip.start_date.strftime("%Y-%m-%d") }}';
+    
+    // Set min date for return date based on departure date
+    document.getElementById('flightDepartureDate').addEventListener('change', function() {
+        document.getElementById('flightReturnDate').setAttribute('min', this.value);
+        
+        // If return date is before departure date, update it
+        if (document.getElementById('flightReturnDate').value && 
+            document.getElementById('flightReturnDate').value < this.value) {
+            document.getElementById('flightReturnDate').value = this.value;
+        }
+    });
+    
+    // Set min date for check-out based on check-in
+    document.getElementById('hotelCheckIn').addEventListener('change', function() {
+        document.getElementById('hotelCheckOut').setAttribute('min', this.value);
+        
+        // If check-out is before check-in, update it
+        if (document.getElementById('hotelCheckOut').value < this.value) {
+            document.getElementById('hotelCheckOut').value = this.value;
+        }
+    });
+</script>
+{% endblock %}
